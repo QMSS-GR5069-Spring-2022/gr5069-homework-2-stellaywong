@@ -74,7 +74,7 @@ display(df_winners_pit_stops)
 df_add_driver_codes = df_drivers \
     .select("code", "driverId") \
     .join(df_winners_pit_stops, on=["driverId"])
-    
+
 display(df_add_driver_codes)
 
 # COMMAND ----------
@@ -93,7 +93,7 @@ df_just_races = df_results \
 
 # join to their race results
 df_drivers_age = df_drivers_age \
-    .select("age", "driverId", "forename", "surname") 
+    .select("age", "driverId", "forename", "surname")
 
 display(df_drivers_age)
 
@@ -108,7 +108,7 @@ display(df_drivers_just_ages)
 
 # join back on names of oldest drivers, Fernando Alonso (F1 from Season 1 Episode 2) and Kimi Räikkönen
 df_drivers_names_max_ages = df_drivers_just_ages \
-    .join(df_drivers_age, df_drivers_just_ages['max(age)'] == df_drivers_age["age"]) 
+    .join(df_drivers_age, df_drivers_just_ages['max(age)'] == df_drivers_age["age"])
 
 # max(age) matches the driver's age
 df_drivers_max = df_drivers_names_max_ages \
@@ -122,7 +122,7 @@ df_drivers_max = df_drivers_names_max_ages \
 
 # join back on names of youngest driver Nico Rosberg
 df_drivers_names_min_ages = df_drivers_just_ages \
-    .join(df_drivers_age, df_drivers_just_ages['min(age)'] == df_drivers_age["age"]) 
+    .join(df_drivers_age, df_drivers_just_ages['min(age)'] == df_drivers_age["age"])
 
 # min(age) matches the driver's age
 df_drivers_min = df_drivers_names_min_ages \
@@ -208,7 +208,7 @@ display(most_fewest_wins)
 
 # COMMAND ----------
 
-# MAGIC 
+# MAGIC
 # MAGIC %md ##### 6. Continue exploring the data by answering your own question. Does the average Formula 1 driver get younger each year?
 
 # COMMAND ----------
@@ -243,3 +243,13 @@ display(df_races_years)
 # COMMAND ----------
 
 # MAGIC %md ##### It seems the maximum and minimum age have both dropped a decade over the last 10 years, but the range has remained about the same! Potential reasons include, new technology that allows the team to instruct drivers when to pit (so less racing experience is required), or the longer F1 season (from 7 races in 1950 to 21 races today) which may favor competitors who are willing to undergo the travel and have less to lose to racing full-time.
+
+# COMMAND ----------
+
+# save the datasets
+avg_pit_stops.toPandas().to_csv('1.avg_pit_stops.csv')
+df_winners_pit_stops.toPandas().to_csv('2.df_winners_pit_stops.csv')
+df_add_driver_codes.toPandas().to_csv('3.df_add_driver_codes.csv')
+df_range_ages.toPandas().to_csv('4.df_range_ages.csv')
+most_fewest_wins.toPandas().to_csv('5.most_fewest_wins.csv')
+df_races_years.toPandas().to_csv('6.df_races_years.csv')
