@@ -36,17 +36,13 @@ df_winners_pit_stops = df_results \
 
 display(df_winners_pit_stops)
 
-
 # 3. Insert the missing code (e.g: ALO for Alonso) for drivers based on the 'drivers' dataset
 df_add_driver_codes = df_drivers \
     .select("code", "driverId") \
     .join(df_winners_pit_stops, on=["driverId"])
 display(df_add_driver_codes)
 
-
 # 4. The youngest and oldest driver for each race (with a new column called “Age”)
-
-
 # find the age (difference the current day to their birthday)
 df_drivers_age = df_drivers \
     .withColumn("age", datediff(current_date(), "dob"))
@@ -107,11 +103,7 @@ df_range_ages = df_drivers_max \
 
 display(df_range_ages)
 
-
-
 # 5. The driver with the most wins and losses for a race
-
-
 # each driver ID comes with a name
 df_drivers_names = df_drivers \
     .select("driverId", "forename", "surname")
@@ -168,9 +160,7 @@ most_fewest_wins = renamed_top \
 
 display(most_fewest_wins)
 
-
 # 6. Raise and answer a question.
-
 # Does the average Formula 1 driver get younger each year?
 
 # find the age (difference the current day to their birthday)
@@ -199,6 +189,5 @@ df_races_years = df_races_years \
     .withColumn("range", df_races_years["max(age)"] - df_races_years["min(age)"])
 
 display(df_races_years)
-
 
 # It seems the maximum and minimum age have both dropped a decade over the last 10 years, but the range has remained about the same! Potential reasons include, new technology that allows the team to instruct drivers when to pit (so less racing experience is required), or the longer F1 season (from 7 races in 1950 to 21 races today) which may favor competitors who are willing to undergo the travel and have less to lose to racing full-time.
