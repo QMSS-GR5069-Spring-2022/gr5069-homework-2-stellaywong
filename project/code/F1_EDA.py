@@ -7,19 +7,10 @@ from pyspark.sql.window import Window
 
 # load datasets
 df_pit_stops = spark.read.csv("s3://columbia-gr5069-main/raw/pit_stops.csv", header = True)
-display(df_pit_stops)
-
 df_results = spark.read.csv("s3://columbia-gr5069-main/raw/results.csv", header = True)
-display(df_results)
-
 df_drivers = spark.read.csv("s3://columbia-gr5069-main/raw/drivers.csv", header = True)
-display(df_drivers)
-
 df_races = spark.read.csv("s3://columbia-gr5069-main/raw/races.csv", header = True)
-display(df_races)
-
 df_driver_standings = spark.read.csv("s3://columbia-gr5069-main/raw/driver_standings.csv", header = True)
-display(df_driver_standings)
 
 # Exploratory analysis
 # 1. The average time each driver spent at the pit stop for each race
@@ -27,15 +18,11 @@ avg_pit_stops = df_pit_stops \
     .groupby("driverId", "raceId") \
     .agg(avg("duration"))
 
-display(avg_pit_stops)
-
 # 2. Rank the average time spent at the pit stop in order of who won each race
 df_winners_pit_stops = df_results \
     .select("positionOrder", "driverId") \
     .join(avg_pit_stops, on=["driverId"]) \
     .sort(df_results.positionOrder.asc())
-
-display(df_winners_pit_stops)
 
 # 3. Insert the missing code (e.g: ALO for Alonso) for drivers based on the 'drivers' dataset
 df_add_driver_codes = df_drivers \
@@ -56,16 +43,12 @@ df_just_races = df_results \
 df_drivers_age = df_drivers_age \
     .select("age", "driverId", "forename", "surname")
 
-display(df_drivers_age)
-
 df_drivers_just_ages = df_drivers_age \
     .join(df_just_races, on=["driverId"])
 
 df_drivers_just_ages = df_drivers_just_ages \
     .groupby("raceId") \
     .agg(max("age"), min("age"))
-
-display(df_drivers_just_ages)
 
 # join back on names of oldest drivers, Fernando Alonso (F1 from Season 1 Episode 2) and Kimi Räikkönen
 df_drivers_names_max_ages = df_drivers_just_ages \
@@ -79,8 +62,6 @@ df_drivers_max = df_drivers_names_max_ages \
     .withColumn("max(age)", (df_drivers_names_max_ages["max(age)"])) \
     .drop("driverId", "forename", "surname", "min(age)")
 
-# display(df_drivers_max)
-
 # join back on names of youngest driver Nico Rosberg
 df_drivers_names_min_ages = df_drivers_just_ages \
     .join(df_drivers_age, df_drivers_just_ages['min(age)'] == df_drivers_age["age"])
@@ -93,8 +74,6 @@ df_drivers_min = df_drivers_names_min_ages \
     .withColumn("min(age)", (df_drivers_names_max_ages["min(age)"])) \
     .drop("driverId", "forename", "surname", "max(age)")
 
-# display(df_drivers_min)
-
 # convert their age to years -- we only do this now because earlier, two drivers could be the same "age" but younger/older within their calendar year
 df_range_ages = df_drivers_max \
     .join(df_drivers_min, on=["raceId"]) \
@@ -102,26 +81,18 @@ df_range_ages = df_drivers_max \
     .withColumn("min(age)", (df_drivers_min["min(age)"]/365).cast(IntegerType())) \
     .drop("age", "age")
 
-display(df_range_ages)
-
 # 5. The driver with the most wins and losses for a race
 # each driver ID comes with a name
 df_drivers_names = df_drivers \
     .select("driverId", "forename", "surname")
 
-# display(df_drivers_names)
-
 # each driver ID has a win record per race. this record may change as the driver has more races.
 df_driver_standings_wins = df_driver_standings \
     .select("driverId", "raceId", "wins")
 
-# display(df_driver_standings_wins)
-
 # for each race, we see all drivers and their current number of wins
 df_driver_standings_names = df_drivers_names \
     .join(df_driver_standings_wins, on=["driverId"])
-
-display(df_driver_standings_names)
 
 # from this source of how to use windows https://sparkbyexamples.com/pyspark/pyspark-find-maximum-row-per-group-in-dataframe/
 windowWins = Window.partitionBy("raceId").orderBy(col("wins").desc())
@@ -129,14 +100,12 @@ top = df_driver_standings_names \
     .withColumn("top_driver", row_number().over(windowWins)) \
     .filter(col("top_driver") == 1) \
     .drop("top_driver")
-display(top)
 
 windowWorsts = Window.partitionBy("raceId").orderBy(col("wins").asc())
 worst = df_driver_standings_names \
     .withColumn("worst_driver", row_number().over(windowWorsts)) \
     .filter(col("worst_driver") == 1) \
     .drop("worst_driver")
-display(worst)
 
 # rename the columns for clarity
 renamed_top = top \
@@ -153,13 +122,8 @@ renamed_worst = worst \
     .withColumn("fewest wins", (worst["wins"])) \
     .drop("driverId", "forename", "surname", "wins")
 
-# display(renamed_top)
-# display(renamed_worst)
-
 most_fewest_wins = renamed_top \
     .join(renamed_worst, on=["raceId"])
-
-display(most_fewest_wins)
 
 # 6. Raise and answer a question.
 # Does the average Formula 1 driver get younger each year?
@@ -188,7 +152,5 @@ df_races_years = df_races \
 
 df_races_years = df_races_years \
     .withColumn("range", df_races_years["max(age)"] - df_races_years["min(age)"])
-
-display(df_races_years)
 
 # It seems the maximum and minimum age have both dropped a decade over the last 10 years, but the range has remained about the same! Potential reasons include, new technology that allows the team to instruct drivers when to pit (so less racing experience is required), or the longer F1 season (from 7 races in 1950 to 21 races today) which may favor competitors who are willing to undergo the travel and have less to lose to racing full-time.
