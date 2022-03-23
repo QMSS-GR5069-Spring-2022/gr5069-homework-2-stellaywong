@@ -1,62 +1,35 @@
-# Databricks notebook source
-# MAGIC %md #### ADS HW 3
+# Databricks notebook
 
-# COMMAND ----------
-
-# MAGIC %md ##### Import Libraries
-
-# COMMAND ----------
-
+# libraries and functions
 from pyspark.sql.functions import datediff, current_date, avg, max, min, first, col, row_number
 from pyspark.sql.types import IntegerType
 from pyspark.sql.window import Window
 
-# COMMAND ----------
-
-# MAGIC %md #### Load Data from S3
-
-# COMMAND ----------
-
+# load datasets
 df_pit_stops = spark.read.csv("s3://columbia-gr5069-main/raw/pit_stops.csv", header = True)
 display(df_pit_stops)
-
-# COMMAND ----------
 
 df_results = spark.read.csv("s3://columbia-gr5069-main/raw/results.csv", header = True)
 display(df_results)
 
-# COMMAND ----------
-
 df_drivers = spark.read.csv("s3://columbia-gr5069-main/raw/drivers.csv", header = True)
 display(df_drivers)
-
-# COMMAND ----------
 
 df_races = spark.read.csv("s3://columbia-gr5069-main/raw/races.csv", header = True)
 display(df_races)
 
-# COMMAND ----------
-
 df_driver_standings = spark.read.csv("s3://columbia-gr5069-main/raw/driver_standings.csv", header = True)
 display(df_driver_standings)
 
-# COMMAND ----------
-
 # MAGIC %md ##### 1. What was the average time each driver spent at the pit stop for each race?
-
-# COMMAND ----------
-
 avg_pit_stops = df_pit_stops \
     .groupby("driverId", "raceId") \
     .agg(avg("duration"))
 
 display(avg_pit_stops)
 
-# COMMAND ----------
-
 # MAGIC %md ##### 2. Rank the average time spent at the pit stop in order of who won each race
 
-# COMMAND ----------
 
 df_winners_pit_stops = df_results \
     .select("positionOrder", "driverId") \
@@ -65,23 +38,19 @@ df_winners_pit_stops = df_results \
 
 display(df_winners_pit_stops)
 
-# COMMAND ----------
 
 # MAGIC %md ##### 3. Insert the missing code (e.g: ALO for Alonso) for drivers based on the 'drivers' dataset
 
-# COMMAND ----------
 
 df_add_driver_codes = df_drivers \
     .select("code", "driverId") \
     .join(df_winners_pit_stops, on=["driverId"])
-    
+
 display(df_add_driver_codes)
 
-# COMMAND ----------
 
 # MAGIC %md ##### 4. Who is the youngest and oldest driver for each race? Create a new column called “Age”
 
-# COMMAND ----------
 
 # find the age (difference the current day to their birthday)
 df_drivers_age = df_drivers \
@@ -93,7 +62,7 @@ df_just_races = df_results \
 
 # join to their race results
 df_drivers_age = df_drivers_age \
-    .select("age", "driverId", "forename", "surname") 
+    .select("age", "driverId", "forename", "surname")
 
 display(df_drivers_age)
 
@@ -108,7 +77,7 @@ display(df_drivers_just_ages)
 
 # join back on names of oldest drivers, Fernando Alonso (F1 from Season 1 Episode 2) and Kimi Räikkönen
 df_drivers_names_max_ages = df_drivers_just_ages \
-    .join(df_drivers_age, df_drivers_just_ages['max(age)'] == df_drivers_age["age"]) 
+    .join(df_drivers_age, df_drivers_just_ages['max(age)'] == df_drivers_age["age"])
 
 # max(age) matches the driver's age
 df_drivers_max = df_drivers_names_max_ages \
@@ -122,7 +91,7 @@ df_drivers_max = df_drivers_names_max_ages \
 
 # join back on names of youngest driver Nico Rosberg
 df_drivers_names_min_ages = df_drivers_just_ages \
-    .join(df_drivers_age, df_drivers_just_ages['min(age)'] == df_drivers_age["age"]) 
+    .join(df_drivers_age, df_drivers_just_ages['min(age)'] == df_drivers_age["age"])
 
 # min(age) matches the driver's age
 df_drivers_min = df_drivers_names_min_ages \
@@ -144,11 +113,9 @@ df_range_ages = df_drivers_max \
 display(df_range_ages)
 
 
-# COMMAND ----------
 
 # MAGIC %md ##### 5. For a given race, which driver has the most wins and losses?
 
-# COMMAND ----------
 
 # each driver ID comes with a name
 df_drivers_names = df_drivers \
@@ -206,12 +173,10 @@ most_fewest_wins = renamed_top \
 
 display(most_fewest_wins)
 
-# COMMAND ----------
 
-# MAGIC 
+# MAGIC
 # MAGIC %md ##### 6. Continue exploring the data by answering your own question. Does the average Formula 1 driver get younger each year?
 
-# COMMAND ----------
 
 # find the age (difference the current day to their birthday)
 df_drivers_age = df_drivers \
@@ -240,6 +205,5 @@ df_races_years = df_races_years \
 
 display(df_races_years)
 
-# COMMAND ----------
 
 # MAGIC %md ##### It seems the maximum and minimum age have both dropped a decade over the last 10 years, but the range has remained about the same! Potential reasons include, new technology that allows the team to instruct drivers when to pit (so less racing experience is required), or the longer F1 season (from 7 races in 1950 to 21 races today) which may favor competitors who are willing to undergo the travel and have less to lose to racing full-time.
