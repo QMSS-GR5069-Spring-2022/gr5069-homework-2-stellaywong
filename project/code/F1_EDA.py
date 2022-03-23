@@ -1,6 +1,6 @@
 # Databricks notebook
 
-# libraries and functions
+# import libraries and functions
 from pyspark.sql.functions import datediff, current_date, avg, max, min, first, col, row_number
 from pyspark.sql.types import IntegerType
 from pyspark.sql.window import Window
@@ -21,6 +21,7 @@ display(df_races)
 df_driver_standings = spark.read.csv("s3://columbia-gr5069-main/raw/driver_standings.csv", header = True)
 display(df_driver_standings)
 
+# Exploratory analysis
 # 1. The average time each driver spent at the pit stop for each race
 avg_pit_stops = df_pit_stops \
     .groupby("driverId", "raceId") \
